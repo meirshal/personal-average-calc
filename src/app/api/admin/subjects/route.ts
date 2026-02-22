@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getDb } from "@/db";
 import { subjects, components, levels, categories } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, inArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -54,12 +54,29 @@ export async function GET() {
     // Get all components and levels for these subjects
     const subjectIds = allSubjects.map((s) => s.id);
 
-    const allComponents = subjectIds.length
-      ? await getDb().select().from(components).orderBy(asc(components.sortOrder))
+    const allLevels = subjectIds.length
+      ? await getDb()
+          .select()
+          .from(levels)
+          .where(inArray(levels.subjectId, subjectIds))
+          .orderBy(asc(levels.sortOrder))
       : [];
 
-    const allLevels = subjectIds.length
-      ? await getDb().select().from(levels).orderBy(asc(levels.sortOrder))
+    const levelIds = allLevels.map((l) => l.id);
+
+    const allComponents = subjectIds.length
+      ? await getDb()
+          .select()
+          .from(components)
+          .where(
+            levelIds.length
+              ? or(
+                  inArray(components.subjectId, subjectIds),
+                  inArray(components.levelId, levelIds)
+                )
+              : inArray(components.subjectId, subjectIds)
+          )
+          .orderBy(asc(components.sortOrder))
       : [];
 
     // Build subject data with components and levels

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getDb } from "@/db";
 import { subjects, components, levels, categories } from "@/db/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, or, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -65,19 +65,28 @@ export async function GET(
       .where(eq(levels.subjectId, id))
       .orderBy(asc(levels.sortOrder));
 
-    // Get all components (both level-based and subject-direct)
-    const allComponents = await getDb()
+    // Get components scoped to this subject and its levels
+    const levelIds = subjLevels.map((l) => l.id);
+    const subjComponents = await getDb()
       .select()
       .from(components)
+      .where(
+        levelIds.length
+          ? or(
+              eq(components.subjectId, id),
+              inArray(components.levelId, levelIds)
+            )
+          : eq(components.subjectId, id)
+      )
       .orderBy(asc(components.sortOrder));
 
-    const directComponents = allComponents.filter(
+    const directComponents = subjComponents.filter(
       (c) => c.subjectId === id && !c.levelId
     );
 
     const levelsWithComponents = subjLevels.map((lvl) => ({
       ...lvl,
-      components: allComponents.filter((c) => c.levelId === lvl.id),
+      components: subjComponents.filter((c) => c.levelId === lvl.id),
     }));
 
     // Get all categories for dropdown
@@ -164,7 +173,10 @@ export async function PUT(
     if (data.sortOrder !== undefined) updateFields.sortOrder = data.sortOrder;
 
     if (Object.keys(updateFields).length > 0) {
-      await getDb().update(subjects).set(updateFields).where(eq(subjects.id, id));
+      await getDb()
+        .update(subjects)
+        .set(updateFields)
+        .where(and(eq(subjects.id, id), eq(subjects.schoolId, adminSchool.schoolId)));
     }
 
     // Replace levels if provided

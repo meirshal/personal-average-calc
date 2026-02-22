@@ -6,7 +6,7 @@ import {
   levels as levelsTable,
   components as componentsTable,
 } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, inArray, or } from "drizzle-orm";
 import type { SchoolConfig, CategoryConfig, SubjectConfig } from "./types";
 
 /**
@@ -42,26 +42,32 @@ export async function getSchoolConfig(
 
   const subjectIds = subs.map((s) => s.id);
 
-  // Fetch all levels for this school's subjects
-  const allLevels = await db
-    .select()
-    .from(levelsTable)
-    .orderBy(asc(levelsTable.sortOrder));
-  const schoolLevels = allLevels.filter((l) =>
-    subjectIds.includes(l.subjectId)
-  );
+  // Fetch levels for this school's subjects
+  const schoolLevels = subjectIds.length
+    ? await db
+        .select()
+        .from(levelsTable)
+        .where(inArray(levelsTable.subjectId, subjectIds))
+        .orderBy(asc(levelsTable.sortOrder))
+    : [];
   const levelIds = schoolLevels.map((l) => l.id);
 
-  // Fetch all components for this school's subjects/levels
-  const allComps = await db
-    .select()
-    .from(componentsTable)
-    .orderBy(asc(componentsTable.sortOrder));
-  const schoolComps = allComps.filter(
-    (c) =>
-      (c.subjectId && subjectIds.includes(c.subjectId)) ||
-      (c.levelId && levelIds.includes(c.levelId))
-  );
+  // Fetch components for this school's subjects/levels
+  const schoolComps =
+    subjectIds.length
+      ? await db
+          .select()
+          .from(componentsTable)
+          .where(
+            levelIds.length
+              ? or(
+                  inArray(componentsTable.subjectId, subjectIds),
+                  inArray(componentsTable.levelId, levelIds)
+                )
+              : inArray(componentsTable.subjectId, subjectIds)
+          )
+          .orderBy(asc(componentsTable.sortOrder))
+      : [];
 
   // Build the config tree
   const categoriesConfig: CategoryConfig[] = cats.map((cat) => {

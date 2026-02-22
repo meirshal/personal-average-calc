@@ -271,15 +271,20 @@ export async function POST() {
   try {
     const adminSchool = await requireAdmin();
 
-    // Check if already seeded (idempotent)
+    // Check if already seeded (idempotent - check both subjects and categories)
     const [subjectCount] = await getDb()
       .select({ count: count() })
       .from(subjects)
       .where(eq(subjects.schoolId, adminSchool.schoolId));
 
-    if (subjectCount.count > 0) {
+    const [categoryCount] = await getDb()
+      .select({ count: count() })
+      .from(categories)
+      .where(eq(categories.schoolId, adminSchool.schoolId));
+
+    if (subjectCount.count > 0 || categoryCount.count > 0) {
       return NextResponse.json(
-        { error: "בית הספר כבר מכיל מקצועות. מחק את כל המקצועות לפני זריעה מחדש." },
+        { error: "בית הספר כבר מכיל מקצועות או קטגוריות. מחק את כל הנתונים לפני זריעה מחדש." },
         { status: 400 }
       );
     }

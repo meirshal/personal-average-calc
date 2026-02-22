@@ -52,7 +52,7 @@ export async function PUT(
     const [updated] = await getDb()
       .update(categories)
       .set(updateData)
-      .where(eq(categories.id, id))
+      .where(and(eq(categories.id, id), eq(categories.schoolId, adminSchool.schoolId)))
       .returning();
 
     revalidatePath(`/school/${adminSchool.school.slug}`);
