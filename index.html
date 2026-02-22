@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>מחשבון ממוצע בגרות</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:rgb(37,99,235);--blue-dark:#1d4ed8;--blue-light:#dbeafe;--blue-50:#eff6ff;
+  --slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;
+  --slate-500:#64748b;--slate-700:#334155;--slate-800:#1e293b;--slate-900:#0f172a;
+  --green:#16a34a;--green-light:#dcfce7;--red:#dc2626;--red-light:#fee2e2;
+  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  background:var(--slate-50);color:var(--slate-800);line-height:1.5;
+  -webkit-font-smoothing:antialiased;min-height:100dvh;padding-bottom:100px;
+}
+header{
+  background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;
+  padding:20px 16px 16px;text-align:center;position:relative;
+}
+header h1{font-size:1.25rem;font-weight:700;margin-bottom:4px}
+header p{font-size:.8rem;opacity:.8}
+.summary-bar{
+  position:sticky;top:0;z-index:100;background:#fff;
+  border-bottom:1px solid var(--slate-200);padding:12px 16px;
+  display:flex;gap:12px;justify-content:center;align-items:center;
+  box-shadow:var(--shadow);
+}
+.summary-stat{
+  display:flex;flex-direction:column;align-items:center;flex:1;max-width:160px;
+}
+.summary-stat .label{font-size:.7rem;color:var(--slate-500);margin-bottom:2px}
+.summary-stat .value{
+  font-size:1.5rem;font-weight:800;color:var(--blue);
+  font-variant-numeric:tabular-nums;
+}
+.summary-divider{width:1px;height:36px;background:var(--slate-200)}
+main{padding:12px;max-width:600px;margin:0 auto}
+.category{margin-bottom:16px}
+.category-header{
+  font-size:.8rem;font-weight:700;color:var(--slate-500);
+  text-transform:uppercase;letter-spacing:.5px;padding:8px 4px 4px;
+  border-bottom:2px solid var(--slate-200);margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.category-header .cat-icon{font-size:1rem}
+.subject-card{
+  background:#fff;border-radius:var(--radius);margin-bottom:8px;
+  box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--slate-100);
+  transition:box-shadow .2s;
+}
+.subject-card.active{border-color:var(--blue);border-width:1.5px}
+.subject-card.active .card-header{background:var(--blue-50)}
+.card-header{
+  display:flex;align-items:center;padding:12px 14px;gap:10px;cursor:pointer;
+  user-select:none;-webkit-user-select:none;transition:background .15s;
+}
+.card-header:active{background:var(--slate-100)}
+.subject-name{flex:1;font-size:.95rem;font-weight:600}
+.subject-units{
+  font-size:.7rem;color:var(--slate-500);background:var(--slate-100);
+  padding:2px 8px;border-radius:20px;white-space:nowrap;
+}
+.subject-card.active .subject-units{background:var(--blue-light);color:var(--blue)}
+.toggle{
+  position:relative;width:44px;height:24px;flex-shrink:0;
+}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle .slider{
+  position:absolute;inset:0;background:var(--slate-300);border-radius:24px;
+  cursor:pointer;transition:.2s;
+}
+.toggle .slider::before{
+  content:'';position:absolute;width:18px;height:18px;border-radius:50%;
+  background:#fff;top:3px;right:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.toggle input:checked+.slider{background:var(--blue)}
+.toggle input:checked+.slider::before{transform:translateX(-20px)}
+.card-body{padding:0 14px 14px;display:none}
+.subject-card.active .card-body{display:block}
+.level-selector{
+  display:flex;gap:6px;margin-bottom:10px;
+}
+.level-btn{
+  flex:1;padding:8px;border:1.5px solid var(--slate-200);border-radius:8px;
+  background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;
+  text-align:center;transition:.15s;font-family:inherit;color:var(--slate-700);
+}
+.level-btn.active{border-color:var(--blue);background:var(--blue-50);color:var(--blue)}
+.component{
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;
+}
+.comp-name{flex:1;font-size:.82rem;color:var(--slate-700)}
+.comp-weight{font-size:.7rem;color:var(--slate-500);min-width:36px;text-align:center}
+.comp-input{
+  width:72px;padding:8px 10px;border:1.5px solid var(--slate-200);border-radius:8px;
+  font-size:.95rem;font-weight:600;text-align:center;font-family:inherit;
+  transition:border-color .15s;background:#fff;color:var(--slate-800);
+  -moz-appearance:textfield;
+}
+.comp-input::-webkit-outer-spin-button,.comp-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.comp-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.comp-input.readonly{background:var(--slate-50);color:var(--slate-500);cursor:default}
+.subject-final{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:10px;padding-top:10px;border-top:1px dashed var(--slate-200);
+}
+.final-label{font-size:.82rem;font-weight:600;color:var(--slate-700)}
+.final-grade{
+  font-size:1.15rem;font-weight:800;color:var(--blue);
+  background:var(--blue-50);padding:4px 14px;border-radius:8px;
+  min-width:60px;text-align:center;
+}
+.dep-note{
+  font-size:.72rem;color:var(--slate-500);background:var(--slate-50);
+  padding:6px 10px;border-radius:6px;margin-bottom:8px;line-height:1.4;
+}
+.extras{
+  background:#fff;border-radius:var(--radius);padding:14px;margin-top:16px;
+  box-shadow:var(--shadow);border:1px solid var(--slate-100);
+}
+.extras h3{font-size:.85rem;color:var(--slate-700);margin-bottom:8px}
+.checkbox-row{
+  display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.85rem;
+}
+.checkbox-row input[type=checkbox]{
+  width:18px;height:18px;accent-color:var(--blue);cursor:pointer;
+}
+.actions{
+  display:flex;gap:8px;justify-content:center;margin-top:20px;padding:0 4px;
+}
+.btn{
+  padding:10px 20px;border-radius:8px;font-size:.85rem;font-weight:600;
+  cursor:pointer;border:none;font-family:inherit;transition:.15s;
+}
+.btn-outline{background:#fff;color:var(--red);border:1.5px solid var(--red-light)}
+.btn-outline:active{background:var(--red-light)}
+@media(min-width:420px){
+  .component{gap:12px}
+  .comp-input{width:80px}
+  header h1{font-size:1.4rem}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>מחשבון ממוצע בגרות</h1>
+  <p>משחוק מצויינות מנכ"ל תשפ"ו</p>
+</header>
+
+<div class="summary-bar">
+  <div class="summary-stat">
+    <span class="label">יחידות לימוד</span>
+    <span class="value" id="totalUnits">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">ממוצע משוקלל</span>
+    <span class="value" id="avgGrade">-</span>
+  </div>
+</div>
+
+<main id="app"></main>
+
+<script>
+const SUBJECTS = [
+  // ===== חובה =====
+  {
+    id:'math',name:'מתמטיקה',category:'core',
+    hasLevels:true,
+    levels:[
+      {id:'4',label:'4 יח"ל',units:4,components:[
+        {id:'a',name:'שאלון 35481',weight:.65},
+        {id:'b',name:'שאלון 35482',weight:.35}
+      ]},
+      {id:'5',label:'5 יח"ל',units:5,components:[
+        {id:'a',name:'שאלון 35581',weight:.60},
+        {id:'b',name:'שאלון 35582',weight:.40}
+      ]}
+    ]
+  },
+  {
+    id:'english',name:'אנגלית',category:'core',units:5,
+    components:[
+      {id:'e',name:'שאלון E - 16481',weight:.27},
+      {id:'f',name:'שאלון F - 16583',weight:.26},
+      {id:'g',name:'שאלון G - 16582',weight:.27},
+      {id:'oral',name:'בעל פה',weight:.20}
+    ]
+  },
+  {
+    id:'history',name:'היסטוריה',category:'core',units:2,
+    components:[
+      {id:'a',name:'פנימי',weight:.30},
+      {id:'b',name:'חיצוני',weight:.70}
+    ]
+  },
+  {
+    id:'literature',name:'ספרות',category:'core',units:2,
+    components:[
+      {id:'a',name:'פנימי',weight:.30},
+      {id:'b',name:'חיצוני',weight:.70}
+    ]
+  },
+  {
+    id:'tanach',name:'תנ"ך',category:'core',units:2,
+    components:[
+      {id:'a',name:'פנימי',weight:.30},
+      {id:'b',name:'חיצוני',weight:.70}
+    ]
+  },
+  {
+    id:'civics',name:'אזרחות',category:'core',units:2,
+    components:[
+      {id:'a',name:'פנימי',weight:.20},
+      {id:'b',name:'חיצוני',weight:.80}
+    ]
+  },
+  {
+    id:'language',name:'לשון',category:'core',units:2,
+    components:[
+      {id:'a',name:'פנימי',weight:.30},
+      {id:'b',name:'חיצוני',weight:.70}
+    ]
+  },
+  // ===== מדעים =====
+  {
+    id:'physics',name:'פיזיקה',category:'science',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.30},
+      {id:'mech',name:'מכניקה חיצוני',weight:.30},
+      {id:'elec',name:'חשמל חיצוני',weight:.25},
+      {id:'lab',name:'מעבדה חיצוני',weight:.15}
+    ]
+  },
+  {
+    id:'biology',name:'ביולוגיה',category:'science',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.30},
+      {id:'ext',name:'בחינה חיצונית',weight:.55},
+      {id:'lab',name:'מעבדה חיצונית',weight:.15}
+    ]
+  },
+  {
+    id:'chemistry',name:'כימיה',category:'science',units:5,
+    components:[
+      {id:'res',name:'עבודת חקר',weight:.30},
+      {id:'ext',name:'בחינה חיצונית',weight:.55},
+      {id:'oral',name:'בעל פה חיצוני',weight:.15}
+    ]
+  },
+  {
+    id:'cs',name:'מדעי המחשב',category:'science',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.24},
+      {id:'ext1',name:'בחינה חיצונית א\'',weight:.36},
+      {id:'ext2',name:'בחינה חיצונית ב\'',weight:.40}
+    ]
+  },
+  {
+    id:'medicine',name:'מדעי הרפואה',category:'science',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.30},
+      {id:'ext',name:'בחינה חיצונית',weight:.70}
+    ]
+  },
+  {
+    id:'medicine_thesis',name:'מדעי הרפואה - עבודת גמר',category:'science',units:5,
+    components:[
+      {id:'proj',name:'פרויקט גמר',weight:1.0}
+    ]
+  },
+  {
+    id:'data_info',name:'מידע ונתונים',category:'science',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.30},
+      {id:'ext',name:'בחינה חיצונית',weight:.70}
+    ]
+  },
+  // ===== חברה =====
+  {
+    id:'social',name:'מדעי החברה',category:'social',units:5,
+    components:[
+      {id:'psy1',name:'פסיכולוגיה א\'',weight:.12},
+      {id:'psy2',name:'פסיכולוגיה ב\'',weight:.28},
+      {id:'methods',name:'שיטות מחקר',weight:.20},
+      {id:'socio',name:'סוציולוגיה',weight:.40}
+    ]
+  },
+  {
+    id:'management',name:'מנהל וכלכלה',category:'social',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.30},
+      {id:'ext',name:'בחינה חיצונית',weight:.70}
+    ]
+  },
+  {
+    id:'geography',name:'גאוגרפיה',category:'social',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.40},
+      {id:'ext',name:'בחינה חיצונית',weight:.60}
+    ]
+  },
+  // ===== הרחבה =====
+  {
+    id:'tanach_ext',name:'תנ"ך מורחב',category:'extended',units:5,
+    dependsOn:'tanach',depLabel:'ציון תנ"ך בסיסי',depWeight:.40,
+    components:[
+      {id:'int',name:'פנימי',weight:.18},
+      {id:'ext',name:'חיצוני',weight:.42}
+    ]
+  },
+  {
+    id:'civics_ext',name:'אזרחות מורחב',category:'extended',units:5,
+    dependsOn:'civics',depLabel:'ציון אזרחות בסיסי',depWeight:.40,
+    components:[
+      {id:'int',name:'פנימי',weight:.18},
+      {id:'ext',name:'חיצוני',weight:.42}
+    ]
+  },
+  // ===== שפות =====
+  {
+    id:'chinese',name:'סינית',category:'lang',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.40},
+      {id:'ext',name:'בחינה חיצונית',weight:.60}
+    ]
+  },
+  {
+    id:'spanish',name:'ספרדית',category:'lang',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.40},
+      {id:'ext',name:'בחינה חיצונית',weight:.60}
+    ]
+  },
+  {
+    id:'french',name:'צרפתית',category:'lang',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.30},
+      {id:'ext',name:'בחינה חיצונית',weight:.70}
+    ]
+  },
+  {
+    id:'arabic',name:'ערבית',category:'lang',units:5,
+    components:[
+      {id:'a',name:'כתוב',weight:.50},
+      {id:'oral',name:'בעל פה',weight:.20},
+      {id:'b',name:'חיצוני',weight:.30}
+    ]
+  },
+  // ===== אמנויות =====
+  {
+    id:'dance',name:'מחול',category:'arts',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.50},
+      {id:'ext',name:'בחינה חיצונית',weight:.50}
+    ]
+  },
+  {
+    id:'theater',name:'תאטרון',category:'arts',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.50},
+      {id:'ext',name:'בחינה חיצונית',weight:.50}
+    ]
+  },
+  {
+    id:'music',name:'מוזיקה',category:'arts',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.50},
+      {id:'ext',name:'בחינה חיצונית',weight:.50}
+    ]
+  },
+  {
+    id:'cinema',name:'קולנוע',category:'arts',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.50},
+      {id:'ext',name:'בחינה חיצונית',weight:.50}
+    ]
+  },
+  // ===== אחר =====
+  {
+    id:'pe_ext',name:'חנ"ג מורחב',category:'other',units:5,
+    components:[
+      {id:'ext',name:'חיצוני',weight:.55},
+      {id:'int1',name:'פנימי א\'',weight:.20},
+      {id:'int2',name:'פנימי ב\'',weight:.25}
+    ]
+  },
+  {
+    id:'toshba',name:'תושב"ע',category:'other',units:5,
+    components:[
+      {id:'int',name:'פנימי',weight:.40},
+      {id:'ext',name:'בחינה חיצונית',weight:.60}
+    ]
+  }
+];
+
+const CATEGORIES = [
+  {id:'core',name:'מקצועות חובה',icon:'📚'},
+  {id:'science',name:'מדעים וטכנולוגיה',icon:'🔬'},
+  {id:'social',name:'חברה ורוח',icon:'🌍'},
+  {id:'extended',name:'הרחבות',icon:'📖'},
+  {id:'lang',name:'שפות',icon:'🗣️'},
+  {id:'arts',name:'אמנויות',icon:'🎨'},
+  {id:'other',name:'נוספים',icon:'⭐'}
+];
+
+// State
+let state = {
+  enabled: {},   // subjectId -> true/false
+  grades: {},    // subjectId_componentId -> number
+  mathLevel: '5' // '4' or '5'
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('bagrut_calc_state');
+    if (saved) state = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function saveState() {
+  try { localStorage.setItem('bagrut_calc_state', JSON.stringify(state)); } catch(e) {}
+}
+
+function getGrade(subjectId, compId) {
+  return state.grades[subjectId + '_' + compId] || 0;
+}
+
+function setGrade(subjectId, compId, val) {
+  state.grades[subjectId + '_' + compId] = Math.min(100, Math.max(0, Number(val) || 0));
+  saveState();
+}
+
+function getComponents(subject) {
+  if (subject.hasLevels) {
+    const lvl = subject.levels.find(l => l.id === state.mathLevel) || subject.levels[0];
+    return lvl.components;
+  }
+  return subject.components;
+}
+
+function getUnits(subject) {
+  if (subject.hasLevels) {
+    const lvl = subject.levels.find(l => l.id === state.mathLevel) || subject.levels[0];
+    return lvl.units;
+  }
+  return subject.units;
+}
+
+function calcFinal(subject) {
+  const comps = getComponents(subject);
+  let total = 0;
+  let hasAny = false;
+  for (const c of comps) {
+    const g = getGrade(subject.id, c.id);
+    if (g > 0) hasAny = true;
+    total += g * c.weight;
+  }
+  // Add dependency component if exists
+  if (subject.dependsOn) {
+    const baseSub = SUBJECTS.find(s => s.id === subject.dependsOn);
+    if (baseSub && state.enabled[baseSub.id]) {
+      const baseGrade = calcFinal(baseSub);
+      if (baseGrade > 0) hasAny = true;
+      total += baseGrade * subject.depWeight;
+    }
+  }
+  return hasAny ? Math.round(total * 100) / 100 : 0;
+}
+
+function calcSummary() {
+  let totalUnits = 0;
+  let weightedSum = 0;
+  for (const s of SUBJECTS) {
+    if (!state.enabled[s.id]) continue;
+    const final = calcFinal(s);
+    if (final <= 0) continue;
+    const units = getUnits(s);
+    totalUnits += units;
+    weightedSum += final * units;
+  }
+  return {
+    totalUnits,
+    avg: totalUnits > 0 ? Math.round((weightedSum / totalUnits) * 100) / 100 : 0
+  };
+}
+
+function render() {
+  const app = document.getElementById('app');
+  let html = '';
+
+  for (const cat of CATEGORIES) {
+    const catSubjects = SUBJECTS.filter(s => s.category === cat.id);
+    if (catSubjects.length === 0) continue;
+
+    html += `<div class="category">
+      <div class="category-header"><span class="cat-icon">${cat.icon}</span> ${cat.name}</div>`;
+
+    for (const subject of catSubjects) {
+      const active = !!state.enabled[subject.id];
+      const comps = getComponents(subject);
+      const units = getUnits(subject);
+      const final = active ? calcFinal(subject) : 0;
+
+      html += `<div class="subject-card${active ? ' active' : ''}" data-id="${subject.id}">
+        <div class="card-header" onclick="toggleSubject('${subject.id}')">
+          <span class="subject-name">${subject.name}</span>
+          <span class="subject-units">${units} יח"ל</span>
+          <label class="toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleSubject('${subject.id}')">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="card-body">`;
+
+      // Math level selector
+      if (subject.hasLevels) {
+        html += `<div class="level-selector">`;
+        for (const lvl of subject.levels) {
+          html += `<button class="level-btn${state.mathLevel === lvl.id ? ' active' : ''}"
+            onclick="setMathLevel('${lvl.id}')">${lvl.label}</button>`;
+        }
+        html += `</div>`;
+      }
+
+      // Dependency note
+      if (subject.dependsOn) {
+        const baseSub = SUBJECTS.find(s => s.id === subject.dependsOn);
+        const baseEnabled = baseSub && state.enabled[baseSub.id];
+        const baseGrade = baseSub && baseEnabled ? calcFinal(baseSub) : 0;
+        html += `<div class="dep-note">
+          ${subject.depWeight * 100}% מהציון מגיע מ${subject.depLabel}
+          ${baseEnabled ? (baseGrade > 0 ? ' (' + baseGrade.toFixed(1) + ')' : '') : ' - יש להפעיל את מקצוע הבסיס'}
+        </div>`;
+      }
+
+      // Component inputs
+      for (const c of comps) {
+        const val = getGrade(subject.id, c.id);
+        html += `<div class="component">
+          <span class="comp-name">${c.name}</span>
+          <span class="comp-weight">${Math.round(c.weight * 100)}%</span>
+          <input type="number" class="comp-input" inputmode="numeric" min="0" max="100"
+            placeholder="—" value="${val || ''}"
+            oninput="onGradeInput('${subject.id}','${c.id}',this.value)">
+        </div>`;
+      }
+
+      // Final grade
+      html += `<div class="subject-final">
+          <span class="final-label">ציון סופי</span>
+          <span class="final-grade">${final > 0 ? final.toFixed(1) : '—'}</span>
+        </div>
+      </div></div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Extras
+  html += `<div class="extras">
+    <h3>פריטים נוספים (לא נכללים בממוצע)</h3>
+    <label class="checkbox-row">
+      <input type="checkbox" id="pe_check" onchange="saveExtras()"> חינוך גופני
+    </label>
+    <label class="checkbox-row">
+      <input type="checkbox" id="social_check" onchange="saveExtras()"> מעורבות חברתית
+    </label>
+  </div>`;
+
+  // Actions
+  html += `<div class="actions">
+    <button class="btn btn-outline" onclick="resetAll()">איפוס נתונים</button>
+  </div>`;
+
+  app.innerHTML = html;
+  loadExtras();
+  updateSummary();
+}
+
+function updateSummary() {
+  const {totalUnits, avg} = calcSummary();
+  document.getElementById('totalUnits').textContent = totalUnits;
+  document.getElementById('avgGrade').textContent = avg > 0 ? avg.toFixed(1) : '—';
+}
+
+function toggleSubject(id) {
+  state.enabled[id] = !state.enabled[id];
+  // Auto-enable dependency
+  const subject = SUBJECTS.find(s => s.id === id);
+  if (subject && subject.dependsOn && state.enabled[id]) {
+    state.enabled[subject.dependsOn] = true;
+  }
+  saveState();
+  render();
+}
+
+function setMathLevel(lvl) {
+  state.mathLevel = lvl;
+  saveState();
+  render();
+}
+
+function onGradeInput(subjectId, compId, val) {
+  setGrade(subjectId, compId, val);
+  // Update final grade and summary without full re-render
+  const card = document.querySelector(`.subject-card[data-id="${subjectId}"]`);
+  const subject = SUBJECTS.find(s => s.id === subjectId);
+  if (card && subject) {
+    const final = calcFinal(subject);
+    const finalEl = card.querySelector('.final-grade');
+    if (finalEl) finalEl.textContent = final > 0 ? final.toFixed(1) : '—';
+  }
+  // Update subjects that depend on this one
+  for (const s of SUBJECTS) {
+    if (s.dependsOn === subjectId && state.enabled[s.id]) {
+      const depCard = document.querySelector(`.subject-card[data-id="${s.id}"]`);
+      if (depCard) {
+        const depFinal = calcFinal(s);
+        const depFinalEl = depCard.querySelector('.final-grade');
+        if (depFinalEl) depFinalEl.textContent = depFinal > 0 ? depFinal.toFixed(1) : '—';
+        const noteEl = depCard.querySelector('.dep-note');
+        if (noteEl) {
+          const baseGrade = calcFinal(subject);
+          noteEl.textContent = `${s.depWeight*100}% מהציון מגיע מ${s.depLabel}${baseGrade > 0 ? ' (' + baseGrade.toFixed(1) + ')' : ''}`;
+        }
+      }
+    }
+  }
+  updateSummary();
+}
+
+function saveExtras() {
+  try {
+    localStorage.setItem('bagrut_extras', JSON.stringify({
+      pe: document.getElementById('pe_check')?.checked,
+      social: document.getElementById('social_check')?.checked
+    }));
+  } catch(e) {}
+}
+
+function loadExtras() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('bagrut_extras') || '{}');
+    const pe = document.getElementById('pe_check');
+    const sc = document.getElementById('social_check');
+    if (pe && saved.pe) pe.checked = true;
+    if (sc && saved.social) sc.checked = true;
+  } catch(e) {}
+}
+
+function resetAll() {
+  if (confirm('למחוק את כל הנתונים?')) {
+    state = { enabled: {}, grades: {}, mathLevel: '5' };
+    localStorage.removeItem('bagrut_calc_state');
+    localStorage.removeItem('bagrut_extras');
+    render();
+  }
+}
+
+// Init
+loadState();
+render();
+</script>
+</body>
+</html>
