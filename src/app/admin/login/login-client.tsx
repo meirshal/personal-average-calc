@@ -11,6 +11,7 @@ export default function LoginClient() {
     <NeonAuthUIProvider
       authClient={client}
       social={{ providers: ["google"] }}
+      redirectTo="/admin"
     >
       <AuthView />
     </NeonAuthUIProvider>
