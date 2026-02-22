@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getSchoolConfig } from "@/lib/school-config";
-import { DEFAULT_SCHOOL_CONFIG } from "@/lib/default-config";
 import Calculator from "@/components/calculator/Calculator";
 
 interface SchoolPageProps {
@@ -11,7 +11,13 @@ export async function generateMetadata({
   params,
 }: SchoolPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const config = (await getSchoolConfig(slug)) || DEFAULT_SCHOOL_CONFIG;
+  const config = await getSchoolConfig(slug);
+
+  if (!config) {
+    return {
+      title: "בית ספר לא נמצא",
+    };
+  }
 
   return {
     title: `מחשבון ממוצע בגרות - ${config.name}`,
@@ -21,7 +27,11 @@ export async function generateMetadata({
 
 export default async function SchoolPage({ params }: SchoolPageProps) {
   const { slug } = await params;
-  const config = (await getSchoolConfig(slug)) || DEFAULT_SCHOOL_CONFIG;
+  const config = await getSchoolConfig(slug);
+
+  if (!config) {
+    notFound();
+  }
 
   return (
     <div dir="rtl" lang="he">

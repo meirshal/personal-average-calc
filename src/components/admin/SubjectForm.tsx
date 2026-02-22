@@ -76,6 +76,22 @@ export default function SubjectForm({
       return;
     }
 
+    // Validate component weights sum to ~1.0 for subjects with components
+    if (!data.hasLevels && data.components.length > 0) {
+      const componentWeightSum = data.components.reduce(
+        (sum, c) => sum + (c.weight || 0),
+        0
+      );
+      const totalWeight =
+        componentWeightSum + (data.depWeight ? data.depWeight : 0);
+      if (Math.abs(totalWeight - 1.0) > 0.01) {
+        setError(
+          `סכום המשקלים חייב להיות 1.0 (כרגע: ${totalWeight.toFixed(2)})`
+        );
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       await onSubmit(data);
