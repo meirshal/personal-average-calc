@@ -2,6 +2,7 @@
 
 import type { SubjectConfig } from "@/lib/types";
 import { getActiveComponents } from "@/lib/calculator";
+import { Switch } from "@/components/ui/switch";
 import ComponentInput from "./ComponentInput";
 import LevelSelector from "./LevelSelector";
 import DependencyInfo from "./DependencyInfo";
@@ -63,27 +64,13 @@ export default function SubjectCard({
           {units} יח&quot;ל
         </span>
         {/* Toggle switch */}
-        <label
-          className="relative w-[44px] h-[24px] shrink-0"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <input
-            type="checkbox"
+        <div onClick={(e) => e.stopPropagation()}>
+          <Switch
             checked={isActive}
-            onChange={() => onToggle(subject.id)}
-            className="opacity-0 w-0 h-0 absolute"
+            onCheckedChange={() => onToggle(subject.id)}
+            className="data-[state=checked]:bg-blue-600"
           />
-          <span
-            className={`absolute inset-0 rounded-full cursor-pointer transition-colors duration-200
-              ${isActive ? "bg-blue-600" : "bg-slate-300"}`}
-          >
-            <span
-              className={`absolute w-[18px] h-[18px] rounded-full bg-white top-[3px]
-                shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-transform duration-200
-                ${isActive ? "right-[23px]" : "right-[3px]"}`}
-            />
-          </span>
-        </label>
+        </div>
       </div>
 
       {/* Card Body - only shown when active */}

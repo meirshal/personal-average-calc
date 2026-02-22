@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function SeedButton() {
   const [loading, setLoading] = useState(false);
@@ -31,15 +32,9 @@ export default function SeedButton() {
 
   return (
     <div className="shrink-0">
-      <button
-        onClick={handleSeed}
-        disabled={loading}
-        className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600
-          hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50
-          whitespace-nowrap cursor-pointer"
-      >
+      <Button onClick={handleSeed} disabled={loading}>
         {loading ? "מוסיף מקצועות..." : "הוסף מקצועות ברירת מחדל"}
-      </button>
+      </Button>
       {error && (
         <p className="text-xs text-red-600 mt-2">{error}</p>
       )}

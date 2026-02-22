@@ -1,8 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import type { SchoolConfig } from "@/lib/types";
 import { useCalculator } from "@/hooks/useCalculator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import SummaryBar from "./SummaryBar";
 import CategoryGroup from "./CategoryGroup";
 
@@ -12,16 +22,10 @@ interface CalculatorProps {
 
 export default function Calculator({ config }: CalculatorProps) {
   const calc = useCalculator(config);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const sortedCategories = [...config.categories].sort(
     (a, b) => a.sortOrder - b.sortOrder
   );
-
-  const handleReset = () => {
-    calc.resetAll();
-    setShowResetConfirm(false);
-  };
 
   return (
     <div className="min-h-dvh bg-slate-50 pb-24">
@@ -86,38 +90,35 @@ export default function Calculator({ config }: CalculatorProps) {
 
         {/* Actions */}
         <div className="flex gap-2 justify-center mt-5 px-1">
-          {!showResetConfirm ? (
-            <button
-              type="button"
-              onClick={() => setShowResetConfirm(true)}
-              className="py-2.5 px-5 rounded-lg text-[0.85rem] font-semibold cursor-pointer
-                border-[1.5px] border-red-100 bg-white text-red-600
-                transition-colors duration-150 active:bg-red-50"
-            >
-              איפוס נתונים
-            </button>
-          ) : (
-            <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
               <button
                 type="button"
-                onClick={handleReset}
                 className="py-2.5 px-5 rounded-lg text-[0.85rem] font-semibold cursor-pointer
-                  border-[1.5px] border-red-600 bg-red-600 text-white
-                  transition-colors duration-150 active:bg-red-700"
+                  border-[1.5px] border-red-100 bg-white text-red-600
+                  transition-colors duration-150 active:bg-red-50"
               >
-                אישור מחיקה
+                איפוס נתונים
               </button>
-              <button
-                type="button"
-                onClick={() => setShowResetConfirm(false)}
-                className="py-2.5 px-5 rounded-lg text-[0.85rem] font-semibold cursor-pointer
-                  border-[1.5px] border-slate-200 bg-white text-slate-700
-                  transition-colors duration-150 active:bg-slate-50"
-              >
-                ביטול
-              </button>
-            </div>
-          )}
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>איפוס נתונים</AlertDialogTitle>
+                <AlertDialogDescription>
+                  פעולה זו תמחק את כל הציונים שהוזנו. האם להמשיך?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>ביטול</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={() => calc.resetAll()}
+                >
+                  אישור מחיקה
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </main>
     </div>

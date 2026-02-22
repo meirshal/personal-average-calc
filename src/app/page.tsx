@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getDb } from "@/db";
 import { schools as schoolsTable } from "@/db/schema";
 import { asc } from "drizzle-orm";
+import { ChevronLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -50,19 +51,7 @@ export default async function Home() {
                   </p>
                 </div>
                 <div className="shrink-0 w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-blue-600 rotate-180"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2.5}
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.75 19.5L8.25 12l7.5-7.5"
-                    />
-                  </svg>
+                  <ChevronLeft className="w-4 h-4 text-blue-600" />
                 </div>
               </div>
             </Link>

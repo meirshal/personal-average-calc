@@ -1,5 +1,8 @@
 "use client";
 
+import { Plus, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import WeightValidator from "./WeightValidator";
 
 export interface ComponentData {
@@ -59,27 +62,26 @@ export default function ComponentEditor({
       </div>
 
       {components.length === 0 && (
-        <p className="text-xs text-slate-400 py-2">אין מרכיבים. הוסף מרכיב חדש.</p>
+        <p className="text-xs text-muted-foreground py-2">אין מרכיבים. הוסף מרכיב חדש.</p>
       )}
 
       {components.map((comp, index) => (
         <div
           key={index}
-          className="flex items-center gap-2 bg-slate-50 rounded-lg p-2.5 border border-slate-200"
+          className="flex items-center gap-2 bg-muted/50 rounded-lg p-2.5 border"
         >
-          <span className="text-xs text-slate-400 w-5 shrink-0 text-center">
+          <span className="text-xs text-muted-foreground w-5 shrink-0 text-center">
             {index + 1}
           </span>
-          <input
+          <Input
             type="text"
             placeholder="שם מרכיב"
             value={comp.name}
             onChange={(e) => updateComponent(index, "name", e.target.value)}
-            className="flex-1 min-w-0 text-sm px-3 py-1.5 rounded-md border border-slate-300
-              focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+            className="flex-1 min-w-0 text-sm bg-background"
           />
           <div className="flex items-center gap-1 shrink-0">
-            <input
+            <Input
               type="number"
               step="0.01"
               min="0"
@@ -89,36 +91,32 @@ export default function ComponentEditor({
               onChange={(e) =>
                 updateComponent(index, "weight", parseFloat(e.target.value) || 0)
               }
-              className="w-20 text-sm px-2 py-1.5 rounded-md border border-slate-300
-                focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white text-center"
+              className="w-20 text-sm text-center bg-background"
             />
-            <span className="text-xs text-slate-400">משקל</span>
+            <span className="text-xs text-muted-foreground">משקל</span>
           </div>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => removeComponent(index)}
-            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50
-              rounded-md transition-colors shrink-0 cursor-pointer"
+            className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             title="הסר מרכיב"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+            <X className="size-4" />
+          </Button>
         </div>
       ))}
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
         onClick={addComponent}
-        className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700
-          hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+        className="text-primary hover:text-primary hover:bg-primary/10"
       >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
+        <Plus className="size-4" />
         הוסף מרכיב
-      </button>
+      </Button>
     </div>
   );
 }

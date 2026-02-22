@@ -1,6 +1,8 @@
 "use client";
 
 import type { SubjectConfig } from "@/lib/types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface DependencyInfoProps {
   subject: SubjectConfig;
@@ -20,13 +22,16 @@ export default function DependencyInfo({
   const pct = subject.depWeight * 100;
 
   return (
-    <div className="text-[0.72rem] text-slate-500 bg-slate-50 py-1.5 px-2.5 rounded-md mb-2 leading-relaxed">
-      {pct}% מהציון מגיע מ{subject.depLabel}
-      {baseSubjectEnabled
-        ? baseSubjectFinal > 0
-          ? ` (${baseSubjectFinal.toFixed(1)})`
-          : ""
-        : " - יש להפעיל את מקצוע הבסיס"}
-    </div>
+    <Alert className="text-[0.72rem] text-slate-500 bg-slate-50 border-slate-200 py-1.5 px-2.5 rounded-md mb-2 leading-relaxed">
+      <Info className="!size-3.5 text-slate-400" />
+      <AlertDescription className="text-[0.72rem] text-slate-500">
+        {pct}% מהציון מגיע מ{subject.depLabel}
+        {baseSubjectEnabled
+          ? baseSubjectFinal > 0
+            ? ` (${baseSubjectFinal.toFixed(1)})`
+            : ""
+          : " - יש להפעיל את מקצוע הבסיס"}
+      </AlertDescription>
+    </Alert>
   );
 }

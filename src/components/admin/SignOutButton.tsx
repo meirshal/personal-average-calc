@@ -2,6 +2,8 @@
 
 import { authClient } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function SignOutButton({
   className,
@@ -18,8 +20,9 @@ export function SignOutButton({
   };
 
   return (
-    <button type="button" onClick={handleSignOut} className={className}>
+    <Button type="button" variant="ghost" onClick={handleSignOut} className={className}>
+      <LogOut className="w-4 h-4" />
       {children}
-    </button>
+    </Button>
   );
 }

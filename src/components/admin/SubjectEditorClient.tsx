@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { AlertCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import SubjectForm, { type SubjectFormData } from "./SubjectForm";
 
 interface SubjectEditorClientProps {
@@ -98,17 +101,30 @@ export default function SubjectEditorClient({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-sm text-slate-500">טוען...</div>
+      <div className="space-y-6 py-4">
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <Skeleton className="h-32 w-full" />
       </div>
     );
   }
 
   if (error || !formData) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-        {error || "מקצוע לא נמצא"}
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="size-4" />
+        <AlertDescription>{error || "מקצוע לא נמצא"}</AlertDescription>
+      </Alert>
     );
   }
 
