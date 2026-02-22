@@ -1,20 +1,21 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getDb } from "@/db";
+import { schools as schoolsTable } from "@/db/schema";
+import { asc } from "drizzle-orm";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "מחשבון ממוצע בגרות",
   description: "מחשבון ממוצע בגרות משוקלל - בחר את בית הספר שלך",
 };
 
-export default function Home() {
-  // For now, show a single default school.
-  // In the future, this will fetch available schools from the database.
-  const schools = [
-    {
-      slug: "default",
-      name: 'משחוק מצויינות מנכ"ל תשפ"ו',
-    },
-  ];
+export default async function Home() {
+  const schools = await getDb()
+    .select({ slug: schoolsTable.slug, name: schoolsTable.name })
+    .from(schoolsTable)
+    .orderBy(asc(schoolsTable.name));
 
   return (
     <div dir="rtl" lang="he" className="min-h-dvh bg-slate-50">

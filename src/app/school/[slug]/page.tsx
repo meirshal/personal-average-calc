@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getSchoolConfig } from "@/lib/school-config";
 import { DEFAULT_SCHOOL_CONFIG } from "@/lib/default-config";
 import Calculator from "@/components/calculator/Calculator";
 
@@ -10,12 +11,7 @@ export async function generateMetadata({
   params,
 }: SchoolPageProps): Promise<Metadata> {
   const { slug } = await params;
-
-  // Try to get school config; for now just use default
-  const config =
-    slug === "default" || slug === DEFAULT_SCHOOL_CONFIG.slug
-      ? DEFAULT_SCHOOL_CONFIG
-      : { ...DEFAULT_SCHOOL_CONFIG, slug };
+  const config = (await getSchoolConfig(slug)) || DEFAULT_SCHOOL_CONFIG;
 
   return {
     title: `מחשבון ממוצע בגרות - ${config.name}`,
@@ -25,16 +21,7 @@ export async function generateMetadata({
 
 export default async function SchoolPage({ params }: SchoolPageProps) {
   const { slug } = await params;
-
-  // Try to fetch from API, fall back to default config
-  let config = DEFAULT_SCHOOL_CONFIG;
-
-  // If the slug matches or is "default", use the default config directly
-  // In the future, this will fetch from the DB via the API route
-  if (slug !== "default" && slug !== DEFAULT_SCHOOL_CONFIG.slug) {
-    // For now, just use default config with the slug overridden
-    config = { ...DEFAULT_SCHOOL_CONFIG, slug };
-  }
+  const config = (await getSchoolConfig(slug)) || DEFAULT_SCHOOL_CONFIG;
 
   return (
     <div dir="rtl" lang="he">
