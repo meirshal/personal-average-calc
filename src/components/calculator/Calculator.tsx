@@ -64,7 +64,7 @@ export default function Calculator({ config }: CalculatorProps) {
         })}
 
         {/* Extras */}
-        <div className="bg-white rounded-xl p-3.5 mt-4 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-xl p-3.5 mt-4 shadow border border-slate-200">
           <h3 className="text-[0.85rem] text-slate-700 mb-2 font-semibold">
             פריטים נוספים (לא נכללים בממוצע)
           </h3>

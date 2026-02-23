@@ -37,7 +37,7 @@ export default async function Home() {
             <Link
               key={school.slug}
               href={`/school/${school.slug}`}
-              className="block bg-white rounded-xl p-5 shadow-sm
+              className="block bg-white rounded-xl p-5 shadow
                 border border-slate-200 transition-all duration-200
                 hover:border-blue-300 hover:shadow-md active:bg-slate-50"
             >
