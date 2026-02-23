@@ -114,7 +114,7 @@ export default function SubjectCard({
               ציון סופי
             </span>
             <span className="text-[1.15rem] font-extrabold text-blue-600 bg-blue-50 py-1 px-3.5 rounded-lg min-w-[60px] text-center">
-              {finalGrade > 0 ? finalGrade.toFixed(1) : "\u2014"}
+              {finalGrade > 0 ? finalGrade.toFixed(1) : "—"}
             </span>
           </div>
         </div>

@@ -24,7 +24,7 @@ export default function SummaryBar({ summary }: SummaryBarProps) {
             ממוצע משוקלל
           </span>
           <span className="text-2xl font-extrabold text-blue-600 tabular-nums">
-            {summary.avg > 0 ? summary.avg.toFixed(1) : "\u2014"}
+            {summary.avg > 0 ? summary.avg.toFixed(1) : "—"}
           </span>
         </div>
       </div>

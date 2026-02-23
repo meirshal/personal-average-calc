@@ -28,7 +28,7 @@ export default function ComponentInput({
         inputMode="numeric"
         min={0}
         max={100}
-        placeholder="\u2014"
+        placeholder="—"
         value={grade || ""}
         onChange={(e) => {
           const val = e.target.value === "" ? 0 : Number(e.target.value);
