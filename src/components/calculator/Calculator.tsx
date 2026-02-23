@@ -13,6 +13,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import SummaryBar from "./SummaryBar";
 import CategoryGroup from "./CategoryGroup";
 
@@ -62,27 +64,23 @@ export default function Calculator({ config }: CalculatorProps) {
         })}
 
         {/* Extras */}
-        <div className="bg-white rounded-xl p-3.5 mt-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] border border-slate-100">
+        <div className="bg-white rounded-xl p-3.5 mt-4 shadow-sm border border-slate-200">
           <h3 className="text-[0.85rem] text-slate-700 mb-2 font-semibold">
             פריטים נוספים (לא נכללים בממוצע)
           </h3>
           <label className="flex items-center gap-2 py-1.5 text-[0.85rem] cursor-pointer">
-            <input
-              type="checkbox"
+            <Switch
               checked={calc.getExtra("pe")}
-              onChange={(e) => calc.setExtra("pe", e.target.checked)}
-              className="w-[18px] h-[18px] accent-blue-600 cursor-pointer"
+              onCheckedChange={(checked) => calc.setExtra("pe", checked)}
+              className="data-[state=checked]:bg-blue-600"
             />
             חינוך גופני
           </label>
           <label className="flex items-center gap-2 py-1.5 text-[0.85rem] cursor-pointer">
-            <input
-              type="checkbox"
+            <Switch
               checked={calc.getExtra("social_involvement")}
-              onChange={(e) =>
-                calc.setExtra("social_involvement", e.target.checked)
-              }
-              className="w-[18px] h-[18px] accent-blue-600 cursor-pointer"
+              onCheckedChange={(checked) => calc.setExtra("social_involvement", checked)}
+              className="data-[state=checked]:bg-blue-600"
             />
             מעורבות חברתית
           </label>
@@ -92,14 +90,9 @@ export default function Calculator({ config }: CalculatorProps) {
         <div className="flex gap-2 justify-center mt-5 px-1">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button
-                type="button"
-                className="py-2.5 px-5 rounded-lg text-[0.85rem] font-semibold cursor-pointer
-                  border-[1.5px] border-red-100 bg-white text-red-600
-                  transition-colors duration-150 active:bg-red-50"
-              >
+              <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
                 איפוס נתונים
-              </button>
+              </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

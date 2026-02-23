@@ -34,7 +34,7 @@ export default function CategoryGroup({
 
   return (
     <div className="mb-4">
-      <div className="text-[0.8rem] font-bold text-slate-500 uppercase tracking-wider py-2 px-1 border-b-2 border-slate-200 mb-2 flex items-center gap-1.5">
+      <div className="text-[0.8rem] font-bold text-slate-500 uppercase tracking-wider py-2.5 px-3 bg-slate-100/60 rounded-lg mb-2 flex items-center gap-1.5">
         {category.icon && <span className="text-base">{category.icon}</span>}
         {category.name}
       </div>
