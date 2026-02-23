@@ -30,7 +30,7 @@ export default function Calculator({ config }: CalculatorProps) {
   );
 
   return (
-    <div className="min-h-dvh bg-slate-50 pb-24">
+    <div className="min-h-dvh bg-slate-100 pb-24">
       {/* Header */}
       <header className="bg-gradient-to-br from-blue-600 to-blue-700 text-white py-5 px-4 text-center">
         <h1 className="text-xl sm:text-[1.4rem] font-bold mb-1">

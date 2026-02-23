@@ -19,7 +19,7 @@ export default async function Home() {
     .orderBy(asc(schoolsTable.name));
 
   return (
-    <div dir="rtl" lang="he" className="min-h-dvh bg-slate-50">
+    <div dir="rtl" lang="he" className="min-h-dvh bg-slate-100">
       {/* Header */}
       <header className="bg-gradient-to-br from-blue-600 to-blue-700 text-white py-12 px-4 text-center">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">
@@ -39,7 +39,7 @@ export default async function Home() {
               href={`/school/${school.slug}`}
               className="block bg-white rounded-xl p-5 shadow-md
                 border border-slate-200 transition-all duration-200
-                hover:border-blue-300 hover:shadow-lg active:bg-slate-50"
+                hover:border-blue-300 hover:shadow-lg active:bg-slate-50/50"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
