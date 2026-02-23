@@ -69,12 +69,23 @@
 - **Expected:** All component weights sum to exactly 1.00
 - **Expected:** For multi-level subjects, each level's components sum to 1.00
 
-### CALC-10: Subject dependency
-- Toggle "תנ"ך" ON and enter grades (e.g., final = 83)
+### CALC-10: Subject dependency — grade calculation
+- Toggle "תנ"ך" ON and enter grades 80/80 (final = 80.0)
 - Toggle "תנ"ך מורחב" ON
-- **Expected:** Dependency info shows that תנ"ך grade is included (depWeight = 0.40)
-- Enter grades for תנ"ך מורחב components
-- **Expected:** Final grade includes base subject grade: components + 83*0.40
+- **Expected:** Dependency info shows "40% מהציון מגיע מציון תנ"ך בסיסי (80.0)"
+- **Expected:** תנ"ך מורחב final with no own grades = 32.0 (80*0.40)
+- Enter grades for תנ"ך מורחב: פנימי=90, חיצוני=85
+- **Expected:** Final = 90*0.18 + 85*0.42 + 80*0.40 = 83.9
+
+### CALC-10b: Subject dependency — units deduplication
+- Toggle "תנ"ך" ON only → Summary shows 2 יח"ל
+- **Expected:** תנ"ך מורחב card (not enabled) still shows "5 יח"ל"
+- Toggle "תנ"ך מורחב" ON (auto-enables תנ"ך if not already)
+- **Expected:** תנ"ך card shows "2 יח"ל", תנ"ך מורחב card shows "3 יח"ל"
+- **Expected:** Summary bar shows 5 total units (not 7)
+- Enter grades for both subjects
+- **Expected:** Weighted average uses 5 as denominator: (תנ"ך_final*2 + מורחב_final*3) / 5
+- Repeat same test with אזרחות + אזרחות מורחב (same 2+3=5 pattern)
 
 ### CALC-11: LocalStorage persistence
 - Toggle several subjects ON and enter grades

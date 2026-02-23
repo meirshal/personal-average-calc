@@ -13,7 +13,7 @@ End-to-end test descriptions for the multi-school Bagrut grade calculator web ap
 | File | Area | Tests |
 |------|------|-------|
 | [01-landing-page.md](./01-landing-page.md) | Landing page | 6 tests |
-| [02-calculator.md](./02-calculator.md) | Student calculator | 15 tests |
+| [02-calculator.md](./02-calculator.md) | Student calculator | 16 tests |
 | [03-auth-flow.md](./03-auth-flow.md) | Authentication | 13 tests |
 | [04-admin-dashboard.md](./04-admin-dashboard.md) | Admin dashboard | 6 tests |
 | [05-admin-categories.md](./05-admin-categories.md) | Category management | 10 tests |
@@ -21,7 +21,7 @@ End-to-end test descriptions for the multi-school Bagrut grade calculator web ap
 | [07-api-endpoints.md](./07-api-endpoints.md) | API endpoints | 18 tests |
 | [08-cross-cutting.md](./08-cross-cutting.md) | Cross-cutting concerns | 13 tests |
 
-**Total: 98 test cases**
+**Total: 99 test cases**
 
 ## Test Categories
 

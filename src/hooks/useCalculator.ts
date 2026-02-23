@@ -10,7 +10,7 @@ import type {
   EnabledMap,
   LevelsMap,
 } from "@/lib/types";
-import { calcFinal, calcSummary, getActiveUnits } from "@/lib/calculator";
+import { calcFinal, calcSummary, getEffectiveUnits } from "@/lib/calculator";
 import { getAllSubjects } from "@/lib/default-config";
 
 const STORAGE_PREFIX = "bagrut_calc_";
@@ -147,12 +147,12 @@ export function useCalculator(config: SchoolConfig) {
     [allSubjects, state.grades, state.enabled, state.levels]
   );
 
-  // Get units for a specific subject (accounting for level selection)
+  // Get units for a specific subject (accounting for level selection and dependency overlap)
   const getSubjectUnits = useCallback(
     (subject: SubjectConfig): number => {
-      return getActiveUnits(subject, state.levels[subject.id]);
+      return getEffectiveUnits(subject, allSubjects, state.enabled, state.levels);
     },
-    [state.levels]
+    [allSubjects, state.enabled, state.levels]
   );
 
   // Calculate overall summary

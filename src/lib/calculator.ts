@@ -93,11 +93,37 @@ export function calcFinal(
 }
 
 /**
+ * Get the effective units for a subject, accounting for dependency overlap.
+ * Extended subjects (e.g., תנ"ך מורחב 5 units) include the base subject's
+ * units (תנ"ך 2 units). When both are enabled, the extended only adds the
+ * incremental units (5 - 2 = 3) to avoid double-counting.
+ */
+export function getEffectiveUnits(
+  subject: SubjectConfig,
+  allSubjects: SubjectConfig[],
+  enabled: EnabledMap,
+  levels: LevelsMap
+): number {
+  const units = getActiveUnits(subject, levels[subject.id]);
+  if (subject.dependsOnId && enabled[subject.id]) {
+    const baseSub = allSubjects.find((s) => s.id === subject.dependsOnId);
+    if (baseSub && enabled[baseSub.id]) {
+      const baseUnits = getActiveUnits(baseSub, levels[baseSub.id]);
+      return units - baseUnits;
+    }
+  }
+  return units;
+}
+
+/**
  * Calculate the overall weighted average across all active subjects.
  *
- * Formula (identical to original):
- *   avg = sum of (final * units) / sum of (units)
+ * Formula:
+ *   avg = sum of (final * effectiveUnits) / sum of (effectiveUnits)
  *   only for enabled subjects with final > 0
+ *
+ * effectiveUnits adjusts for dependency overlap — extended subjects
+ * only count incremental units above their base subject.
  */
 export function calcSummary(
   allSubjects: SubjectConfig[],
@@ -113,7 +139,7 @@ export function calcSummary(
     if (!enabled[s.id]) continue;
     const final = calcFinal(s, allSubjects, grades, enabled, levels);
     if (final <= 0) continue;
-    const units = getActiveUnits(s, levels[s.id]);
+    const units = getEffectiveUnits(s, allSubjects, enabled, levels);
     totalUnits += units;
     weightedSum += final * units;
     activeCount++;
