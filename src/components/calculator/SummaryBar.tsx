@@ -8,7 +8,7 @@ interface SummaryBarProps {
 
 export default function SummaryBar({ summary }: SummaryBarProps) {
   return (
-    <div className="sticky top-0 z-[100] bg-white border-b border-slate-200 py-3 px-4 shadow">
+    <div className="sticky top-0 z-[100] bg-white border-b border-slate-200 py-3 px-4 shadow-md">
       <div className="max-w-[600px] mx-auto flex gap-3 justify-center items-center">
         <div className="flex flex-col items-center flex-1 max-w-[160px]">
           <span className="text-[0.7rem] text-slate-500 mb-0.5">

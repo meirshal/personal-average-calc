@@ -41,8 +41,8 @@ export default function SubjectCard({
       className={`bg-white rounded-xl mb-2 overflow-hidden transition-shadow duration-200
         ${
           isActive
-            ? "border-[1.5px] border-blue-600 shadow"
-            : "border border-slate-200 shadow"
+            ? "border-[1.5px] border-blue-600 shadow-md"
+            : "border border-slate-300 shadow-sm"
         }`}
     >
       {/* Card Header */}

@@ -37,9 +37,9 @@ export default async function Home() {
             <Link
               key={school.slug}
               href={`/school/${school.slug}`}
-              className="block bg-white rounded-xl p-5 shadow
+              className="block bg-white rounded-xl p-5 shadow-md
                 border border-slate-200 transition-all duration-200
-                hover:border-blue-300 hover:shadow-md active:bg-slate-50"
+                hover:border-blue-300 hover:shadow-lg active:bg-slate-50"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
