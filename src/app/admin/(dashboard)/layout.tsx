@@ -1,9 +1,10 @@
 import { neonAuth } from "@/lib/auth/server";
-import { getAdminSchool } from "@/lib/admin-auth";
+import { getAdminSchools, requireAdminWithSchools } from "@/lib/admin-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SignOutButton } from "@/components/admin/SignOutButton";
+import { SchoolSwitcher } from "@/components/admin/SchoolSwitcher";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,9 +28,9 @@ export default async function AdminLayout({
   }
 
   // Check admin status
-  const adminSchool = await getAdminSchool(user.email);
+  const adminResult = await getAdminSchools(user.email);
 
-  if (!adminSchool) {
+  if (!adminResult || adminResult.schools.length === 0) {
     return (
       <div dir="rtl" lang="he" className="min-h-dvh bg-slate-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8 text-center">
@@ -59,6 +60,9 @@ export default async function AdminLayout({
     );
   }
 
+  // Resolve current school and get all schools for the switcher
+  const { adminSchool, allSchools } = await requireAdminWithSchools();
+
   return (
     <div dir="rtl" lang="he" className="min-h-dvh bg-slate-50">
       {/* Admin Navigation Bar */}
@@ -66,15 +70,20 @@ export default async function AdminLayout({
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           {/* Right side: School name + nav links */}
           <div className="flex items-center gap-4">
-            <Link
-              href="/admin"
-              className="flex items-center gap-2 text-slate-800 font-semibold text-sm hover:text-blue-600 transition-colors"
-            >
-              <span className="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">
-                {adminSchool.school.name.charAt(0)}
-              </span>
-              <span className="hidden sm:inline">{adminSchool.school.name}</span>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 text-slate-800 font-semibold text-sm hover:text-blue-600 transition-colors shrink-0"
+              >
+                <span className="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">
+                  {adminSchool.school.name.charAt(0)}
+                </span>
+              </Link>
+              <SchoolSwitcher
+                currentSchool={adminSchool.school}
+                schools={allSchools}
+              />
+            </div>
 
             <Separator orientation="vertical" className="h-5" />
 

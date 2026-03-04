@@ -6,6 +6,7 @@ import {
   integer,
   real,
   boolean,
+  uniqueIndex,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -24,15 +25,33 @@ export const schools = pgTable("school", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });
 
-// Admins (maps email -> school)
+// Admins
 export const admins = pgTable("admin", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull().unique(),
-  schoolId: uuid("school_id")
-    .notNull()
-    .references(() => schools.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
+
+// Admin ↔ School junction table (many-to-many)
+export const adminSchools = pgTable(
+  "admin_school",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    adminId: uuid("admin_id")
+      .notNull()
+      .references(() => admins.id, { onDelete: "cascade" }),
+    schoolId: uuid("school_id")
+      .notNull()
+      .references(() => schools.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("admin_school_admin_id_school_id_idx").on(
+      table.adminId,
+      table.schoolId
+    ),
+  ]
+);
 
 // Categories (per school)
 export const categories = pgTable("category", {
@@ -96,13 +115,24 @@ export const components = pgTable("component", {
 // ============================================================
 
 export const schoolsRelations = relations(schools, ({ many }) => ({
-  admins: many(admins),
+  adminSchools: many(adminSchools),
   categories: many(categories),
   subjects: many(subjects),
 }));
 
-export const adminsRelations = relations(admins, ({ one }) => ({
-  school: one(schools, { fields: [admins.schoolId], references: [schools.id] }),
+export const adminsRelations = relations(admins, ({ many }) => ({
+  adminSchools: many(adminSchools),
+}));
+
+export const adminSchoolsRelations = relations(adminSchools, ({ one }) => ({
+  admin: one(admins, {
+    fields: [adminSchools.adminId],
+    references: [admins.id],
+  }),
+  school: one(schools, {
+    fields: [adminSchools.schoolId],
+    references: [schools.id],
+  }),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({

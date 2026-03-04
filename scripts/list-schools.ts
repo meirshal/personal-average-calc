@@ -18,7 +18,9 @@ const db = drizzle(sql, { schema });
 async function main() {
   const schoolsWithAdmins = await db.query.schools.findMany({
     with: {
-      admins: true,
+      adminSchools: {
+        with: { admin: true },
+      },
       categories: true,
       subjects: true,
     },
@@ -44,10 +46,10 @@ async function main() {
     console.log(`  Subjects:   ${school.subjects.length}`);
     console.log(`  Created:    ${school.createdAt.toISOString()}`);
 
-    if (school.admins.length > 0) {
+    if (school.adminSchools.length > 0) {
       console.log(`  Admins:`);
-      for (const admin of school.admins) {
-        console.log(`    - ${admin.email} (added ${admin.createdAt.toISOString()})`);
+      for (const as of school.adminSchools) {
+        console.log(`    - ${as.admin.email} (added ${as.createdAt.toISOString()})`);
       }
     } else {
       console.log(`  Admins:     (none)`);

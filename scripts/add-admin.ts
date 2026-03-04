@@ -10,7 +10,7 @@ config({ path: ".env.local" });
 
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import * as schema from "../src/db/schema";
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -54,26 +54,45 @@ async function main() {
     process.exit(1);
   }
 
-  try {
-    const [admin] = await db
-      .insert(schema.admins)
-      .values({
-        email: args.email.toLowerCase(),
-        schoolId: school.id,
-      })
-      .returning();
+  const email = args.email.toLowerCase();
 
-    console.log("Admin added successfully!");
-    console.log(`  Email:  ${admin.email}`);
-    console.log(`  School: ${school.name} (${school.slug})`);
-  } catch (err: any) {
-    if (err.code === "23505") {
-      console.error(`Admin with email "${args.email}" already exists.`);
-    } else {
-      throw err;
-    }
+  // Find or create admin
+  let admin = await db.query.admins.findFirst({
+    where: eq(schema.admins.email, email),
+  });
+
+  if (!admin) {
+    const [created] = await db
+      .insert(schema.admins)
+      .values({ email })
+      .returning();
+    admin = created;
+  }
+
+  // Check if already associated
+  const existing = await db.query.adminSchools.findFirst({
+    where: and(
+      eq(schema.adminSchools.adminId, admin.id),
+      eq(schema.adminSchools.schoolId, school.id)
+    ),
+  });
+
+  if (existing) {
+    console.error(
+      `Admin "${email}" already has access to ${school.name} (${school.slug}).`
+    );
     process.exit(1);
   }
+
+  // Add admin -> school association
+  await db.insert(schema.adminSchools).values({
+    adminId: admin.id,
+    schoolId: school.id,
+  });
+
+  console.log("Admin added successfully!");
+  console.log(`  Email:  ${admin.email}`);
+  console.log(`  School: ${school.name} (${school.slug})`);
 
   process.exit(0);
 }
