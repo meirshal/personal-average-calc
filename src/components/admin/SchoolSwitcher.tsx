@@ -44,45 +44,6 @@ export function SchoolSwitcher({ currentSchool, schools }: SchoolSwitcherProps) 
   const [newSlug, setNewSlug] = useState("");
   const [error, setError] = useState("");
 
-  // Single school: render static text
-  if (schools.length <= 1) {
-    return (
-      <span className="hidden sm:inline text-sm font-semibold text-slate-800">
-        {currentSchool.name}
-      </span>
-    );
-  }
-
-  const handleSchoolChange = async (value: string) => {
-    if (value === CREATE_NEW_VALUE) {
-      setDialogOpen(true);
-      return;
-    }
-
-    if (value === currentSchool.id) return;
-
-    setIsSwitching(true);
-    try {
-      const res = await fetch("/api/admin/switch-school", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ schoolId: value }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        console.error("Switch school error:", data.error);
-        return;
-      }
-
-      router.refresh();
-    } catch (err) {
-      console.error("Switch school error:", err);
-    } finally {
-      setIsSwitching(false);
-    }
-  };
-
   const handleCreateSchool = async () => {
     setError("");
 
@@ -127,6 +88,121 @@ export function SchoolSwitcher({ currentSchool, schools }: SchoolSwitcherProps) 
     }
   };
 
+  const createSchoolDialog = (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogContent dir="rtl" className="sm:max-w-md">
+        <DialogHeader className="text-right">
+          <DialogTitle>הוסף בית ספר חדש</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-4 py-2">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="school-name">שם בית הספר</Label>
+            <Input
+              id="school-name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="לדוגמה: תיכון הרצליה"
+              disabled={isCreating}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="school-slug">מזהה (slug)</Label>
+            <Input
+              id="school-slug"
+              dir="ltr"
+              className="text-left"
+              value={newSlug}
+              onChange={(e) => setNewSlug(e.target.value.toLowerCase())}
+              placeholder="herzliya"
+              disabled={isCreating}
+            />
+            <p className="text-xs text-slate-400">
+              אותיות קטנות באנגלית ומקפים בלבד
+            </p>
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-600">{error}</p>
+          )}
+        </div>
+
+        <DialogFooter className="flex-row-reverse sm:flex-row-reverse gap-2">
+          <Button
+            onClick={handleCreateSchool}
+            disabled={isCreating}
+          >
+            {isCreating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                יוצר...
+              </>
+            ) : (
+              "צור בית ספר"
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setDialogOpen(false)}
+            disabled={isCreating}
+          >
+            ביטול
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Single school: render static text + create button
+  if (schools.length <= 1) {
+    return (
+      <>
+        <span className="hidden sm:inline text-sm font-semibold text-slate-800">
+          {currentSchool.name}
+        </span>
+        <button
+          onClick={() => setDialogOpen(true)}
+          className="hidden sm:inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+          title="הוסף בית ספר חדש"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </button>
+        {createSchoolDialog}
+      </>
+    );
+  }
+
+  const handleSchoolChange = async (value: string) => {
+    if (value === CREATE_NEW_VALUE) {
+      setDialogOpen(true);
+      return;
+    }
+
+    if (value === currentSchool.id) return;
+
+    setIsSwitching(true);
+    try {
+      const res = await fetch("/api/admin/switch-school", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ schoolId: value }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        console.error("Switch school error:", data.error);
+        return;
+      }
+
+      router.refresh();
+    } catch (err) {
+      console.error("Switch school error:", err);
+    } finally {
+      setIsSwitching(false);
+    }
+  };
+
   return (
     <>
       <Select
@@ -160,70 +236,7 @@ export function SchoolSwitcher({ currentSchool, schools }: SchoolSwitcherProps) 
           </SelectItem>
         </SelectContent>
       </Select>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent dir="rtl" className="sm:max-w-md">
-          <DialogHeader className="text-right">
-            <DialogTitle>הוסף בית ספר חדש</DialogTitle>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-4 py-2">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="school-name">שם בית הספר</Label>
-              <Input
-                id="school-name"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="לדוגמה: תיכון הרצליה"
-                disabled={isCreating}
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="school-slug">מזהה (slug)</Label>
-              <Input
-                id="school-slug"
-                dir="ltr"
-                className="text-left"
-                value={newSlug}
-                onChange={(e) => setNewSlug(e.target.value.toLowerCase())}
-                placeholder="herzliya"
-                disabled={isCreating}
-              />
-              <p className="text-xs text-slate-400">
-                אותיות קטנות באנגלית ומקפים בלבד
-              </p>
-            </div>
-
-            {error && (
-              <p className="text-sm text-red-600">{error}</p>
-            )}
-          </div>
-
-          <DialogFooter className="flex-row-reverse sm:flex-row-reverse gap-2">
-            <Button
-              onClick={handleCreateSchool}
-              disabled={isCreating}
-            >
-              {isCreating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  יוצר...
-                </>
-              ) : (
-                "צור בית ספר"
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setDialogOpen(false)}
-              disabled={isCreating}
-            >
-              ביטול
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {createSchoolDialog}
     </>
   );
 }
