@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShieldOff, LayoutDashboard, Grid3X3, BookOpen } from "lucide-react";
 import QueryProvider from "@/components/admin/QueryProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: "מערכת ניהול - מחשבון ממוצע בגרות",
@@ -65,6 +66,7 @@ export default async function AdminLayout({
   const { adminSchool, allSchools } = await requireAdminWithSchools();
 
   return (
+    <TooltipProvider>
     <div dir="rtl" lang="he" className="min-h-dvh bg-slate-50">
       {/* Admin Navigation Bar */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
@@ -130,5 +132,6 @@ export default async function AdminLayout({
         <QueryProvider>{children}</QueryProvider>
       </main>
     </div>
+    </TooltipProvider>
   );
 }
