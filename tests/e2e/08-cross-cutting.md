@@ -33,18 +33,20 @@
 ## Multi-School Isolation
 
 ### CC-05: Data isolation between schools
-- Create two schools (blich and test-school)
-- Add categories/subjects to each
+- Admin has access to multiple schools via `admin_school` junction table (e.g., blich and test-school)
+- Add categories/subjects to each school
 - **Expected:** `/school/blich` only shows blich's data
 - **Expected:** `/school/test-school` only shows test-school's data
-- **Expected:** Admin for school A cannot see school B's data
+- **Expected:** Admin switching between schools in the switcher sees only the selected school's data
+- **Expected:** CRUD operations scope to the `admin-school-id` cookie value
 
-### CC-06: Admin scoped to their school
-- Admin logs in (scoped to "בליך")
-- All admin pages show only "בליך" data
-- **Expected:** Dashboard shows "בליך" name and stats
-- **Expected:** Categories list only "בליך" categories
-- **Expected:** Subjects list only "בליך" subjects
+### CC-06: Admin scoped to their selected school
+- Admin logs in (auto-selects first school or last-used school via `admin-school-id` cookie)
+- All admin pages show only the selected school's data
+- **Expected:** Dashboard shows selected school name and stats
+- **Expected:** Categories list only selected school's categories
+- **Expected:** Subjects list only selected school's subjects
+- **Expected:** School switcher in nav bar reflects the current selection
 
 ## Performance
 
@@ -88,3 +90,24 @@
 - **Expected:** 404 or redirect
 - `/admin/subjects/invalid-uuid`
 - **Expected:** 404 or "subject not found" message
+
+## School Switcher Persistence
+
+### CC-14: School selection persists across navigation
+- Admin with multiple schools selects school B in the switcher
+- Navigate between `/admin`, `/admin/categories`, `/admin/subjects`
+- **Expected:** School B remains selected on all pages (cookie persists)
+- **Expected:** All pages show school B's data consistently
+
+### CC-15: API data isolation after school switch
+- Admin switches from school A to school B via the switcher
+- Perform CRUD operations (create category, create subject)
+- **Expected:** New data created under school B only
+- Switch back to school A
+- **Expected:** School A's data unchanged, no cross-contamination
+
+### CC-16: Create school auto-adds junction table entry
+- Admin creates a new school via the create school dialog
+- **Expected:** New row in `admin_school` table linking current admin to new school
+- **Expected:** Admin can immediately access the new school (auto-switched)
+- **Expected:** New school appears in school switcher dropdown

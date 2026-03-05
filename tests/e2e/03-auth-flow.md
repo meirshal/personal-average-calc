@@ -58,7 +58,7 @@
 - **Expected:** Redirects to `/admin/login` (no longer authenticated)
 
 ### AUTH-09: Non-admin email rejection
-- Log in with a Google account not in the `admins` table
+- Log in with a Google account not in the `admins` table (no matching row in `admin_school` junction table)
 - **Expected:** User sees "אין לך הרשאות" or equivalent unauthorized message
 - **Expected:** Cannot access admin dashboard
 
@@ -69,11 +69,17 @@
 - **Expected:** Returns 401 Unauthorized
 - `POST /api/admin/seed` without session cookie
 - **Expected:** Returns 401 Unauthorized
+- `POST /api/admin/switch-school` without session cookie
+- **Expected:** Returns 401 Unauthorized
+- `POST /api/admin/schools` without session cookie
+- **Expected:** Returns 401 Unauthorized
 
 ### AUTH-11: API route protection (wrong school)
-- Authenticate as admin for school A
+- Authenticate as admin with access to school A (via `admin_school` junction table)
+- Set `admin-school-id` cookie to school B (a school the admin has no access to)
 - Try to access/modify data for school B via API
-- **Expected:** Queries are scoped to admin's school only
+- **Expected:** `requireAdmin()` validates admin has a junction table entry for the selected school
+- **Expected:** Falls back to first accessible school or returns unauthorized
 - **Expected:** Cannot see or modify other schools' data
 
 ### AUTH-12: Public API routes remain accessible

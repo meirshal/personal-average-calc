@@ -60,7 +60,7 @@ Neon Auth middleware (`src/middleware.ts`) protects `/admin/*`. `requireAdmin()`
 
 ## E2E Tests
 
-Manual test descriptions in `tests/e2e/` (98 test cases across 8 files). No automated test framework — tests are markdown checklists meant to be executed manually or via browser automation (Playwright). Covers landing page, calculator, auth flow, admin CRUD, API endpoints, and cross-cutting concerns (performance, security, RTL). Test school: `blich`.
+Manual test descriptions in `tests/e2e/` (122 test cases across 9 files). No automated test framework — tests are markdown checklists meant to be executed manually or via browser automation (Playwright). Covers landing page, calculator, auth flow, admin CRUD, API endpoints, and cross-cutting concerns (performance, security, RTL). Test school: `blich`.
 
 ## Conventions
 

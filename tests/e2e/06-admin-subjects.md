@@ -115,9 +115,11 @@
 - **Expected:** Level and its components removed
 
 ### SUB-13: School scoping
-- All subject operations only affect the admin's school
-- **Expected:** API calls include school_id scoping
-- **Expected:** Cannot see/modify subjects from other schools
+- All subject operations only affect the admin's currently selected school (via `admin-school-id` cookie)
+- Admin's school access is resolved through the `admin_school` junction table
+- **Expected:** API calls scope queries to the selected school's ID
+- **Expected:** Switching schools via the school switcher shows only that school's subjects
+- **Expected:** Cannot see/modify subjects from schools the admin has no access to
 
 ### SUB-14: Input validation
 - Try to create a subject with empty name
