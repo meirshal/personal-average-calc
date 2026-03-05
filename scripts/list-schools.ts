@@ -2,7 +2,7 @@
  * List all schools and their admins.
  *
  * Usage:
- *   npx tsx scripts/list-schools.ts
+ *   bun scripts/list-schools.ts
  */
 
 import { config } from "dotenv";
@@ -30,7 +30,7 @@ async function main() {
   if (schoolsWithAdmins.length === 0) {
     console.log("No schools found. Create one with:");
     console.log(
-      '  npx tsx scripts/create-school.ts --name "School Name" --slug "school-slug"'
+      '  bun scripts/create-school.ts --name "School Name" --slug "school-slug"'
     );
     process.exit(0);
   }

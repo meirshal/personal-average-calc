@@ -2,8 +2,8 @@
  * Remove an admin by email.
  *
  * Usage:
- *   npx tsx scripts/remove-admin.ts --email teacher@gmail.com
- *   npx tsx scripts/remove-admin.ts --email teacher@gmail.com --school ort-rehovot
+ *   bun scripts/remove-admin.ts --email teacher@gmail.com
+ *   bun scripts/remove-admin.ts --email teacher@gmail.com --school ort-rehovot
  *
  * With --school: removes only the association to that school.
  * Without --school: removes the admin entirely (and all associations).
@@ -36,7 +36,7 @@ async function main() {
 
   if (!args.email) {
     console.error(
-      "Usage: npx tsx scripts/remove-admin.ts --email <email> [--school <slug>]"
+      "Usage: bun scripts/remove-admin.ts --email <email> [--school <slug>]"
     );
     process.exit(1);
   }

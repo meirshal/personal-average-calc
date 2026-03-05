@@ -2,7 +2,7 @@
  * Add an admin email to a school.
  *
  * Usage:
- *   npx tsx scripts/add-admin.ts --email teacher@gmail.com --school ort-rehovot
+ *   bun scripts/add-admin.ts --email teacher@gmail.com --school ort-rehovot
  */
 
 import { config } from "dotenv";
@@ -32,7 +32,7 @@ async function main() {
 
   if (!args.email || !args.school) {
     console.error(
-      "Usage: npx tsx scripts/add-admin.ts --email <email> --school <slug>"
+      "Usage: bun scripts/add-admin.ts --email <email> --school <slug>"
     );
     process.exit(1);
   }
