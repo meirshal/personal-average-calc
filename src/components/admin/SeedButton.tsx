@@ -1,42 +1,28 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useSeedSubjects } from "@/hooks/useAdminQueries";
 
 export default function SeedButton() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const seedMutation = useSeedSubjects();
 
-  const handleSeed = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/admin/seed", { method: "POST" });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "שגיאה בזריעת נתונים");
-        return;
-      }
-
-      router.refresh();
-    } catch {
-      setError("שגיאה בחיבור לשרת");
-    } finally {
-      setLoading(false);
-    }
+  const handleSeed = () => {
+    seedMutation.mutate(undefined, {
+      onSuccess: () => {
+        router.refresh();
+      },
+    });
   };
 
   return (
     <div className="shrink-0">
-      <Button onClick={handleSeed} disabled={loading}>
-        {loading ? "מוסיף מקצועות..." : "הוסף מקצועות ברירת מחדל"}
+      <Button onClick={handleSeed} disabled={seedMutation.isPending}>
+        {seedMutation.isPending ? "מוסיף מקצועות..." : "הוסף מקצועות ברירת מחדל"}
       </Button>
-      {error && (
-        <p className="text-xs text-red-600 mt-2">{error}</p>
+      {seedMutation.error && (
+        <p className="text-xs text-red-600 mt-2">{seedMutation.error.message}</p>
       )}
     </div>
   );

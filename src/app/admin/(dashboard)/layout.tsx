@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShieldOff, LayoutDashboard, Grid3X3, BookOpen } from "lucide-react";
+import QueryProvider from "@/components/admin/QueryProvider";
 
 export const metadata: Metadata = {
   title: "מערכת ניהול - מחשבון ממוצע בגרות",
@@ -126,7 +127,7 @@ export default async function AdminLayout({
 
       {/* Main Content */}
       <main className="max-w-5xl mx-auto p-4">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </main>
     </div>
   );

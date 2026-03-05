@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import ConfirmDialog from "./ConfirmDialog";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Check, X, ChevronUp, ChevronDown, Pencil, Trash2 } from "lucide-react";
+import {
+  useCategories,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+  useReorderCategories,
+} from "@/hooks/useAdminQueries";
 
 interface Category {
   id: string;
@@ -17,127 +24,76 @@ interface Category {
 }
 
 export default function CategoriesClient() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const categoriesQuery = useCategories();
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
+  const reorderCategories = useReorderCategories();
+
+  const categories: Category[] = categoriesQuery.data ?? [];
 
   // Add form
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState("");
-  const [addLoading, setAddLoading] = useState(false);
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editIcon, setEditIcon] = useState("");
-  const [editLoading, setEditLoading] = useState(false);
 
   // Delete state
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const fetchCategories = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/categories");
-      if (!res.ok) throw new Error("שגיאה בטעינת קטגוריות");
-      const data = await res.json();
-      setCategories(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "שגיאה");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
 
-    setAddLoading(true);
+    const maxOrder = categories.length > 0
+      ? Math.max(...categories.map((c) => c.sortOrder))
+      : -1;
+
     try {
-      const maxOrder = categories.length > 0
-        ? Math.max(...categories.map((c) => c.sortOrder))
-        : -1;
-
-      const res = await fetch("/api/admin/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newName.trim(),
-          icon: newIcon.trim() || undefined,
-          sortOrder: maxOrder + 1,
-        }),
+      await createCategory.mutateAsync({
+        name: newName.trim(),
+        icon: newIcon.trim() || undefined,
+        sortOrder: maxOrder + 1,
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "שגיאה ביצירת קטגוריה");
-      }
 
       setNewName("");
       setNewIcon("");
       setShowAdd(false);
-      await fetchCategories();
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה");
-    } finally {
-      setAddLoading(false);
     }
   };
 
   const handleEdit = async (id: string) => {
     if (!editName.trim()) return;
 
-    setEditLoading(true);
     try {
-      const res = await fetch(`/api/admin/categories/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName.trim(),
-          icon: editIcon.trim() || "",
-        }),
+      await updateCategory.mutateAsync({
+        id,
+        name: editName.trim(),
+        icon: editIcon.trim() || "",
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "שגיאה בעדכון קטגוריה");
-      }
-
       setEditingId(null);
-      await fetchCategories();
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה");
-    } finally {
-      setEditLoading(false);
     }
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
 
-    setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/admin/categories/${deleteTarget.id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "שגיאה במחיקת קטגוריה");
-      }
-
+      await deleteCategory.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
-      await fetchCategories();
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה");
-    } finally {
-      setDeleteLoading(false);
     }
   };
 
@@ -152,19 +108,10 @@ export default function CategoriesClient() {
     const swap = categories[swapIndex];
 
     try {
-      await Promise.all([
-        fetch(`/api/admin/categories/${current.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sortOrder: swap.sortOrder }),
-        }),
-        fetch(`/api/admin/categories/${swap.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sortOrder: current.sortOrder }),
-        }),
+      await reorderCategories.mutateAsync([
+        { id: current.id, sortOrder: swap.sortOrder },
+        { id: swap.id, sortOrder: current.sortOrder },
       ]);
-      await fetchCategories();
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה");
     }
@@ -176,7 +123,7 @@ export default function CategoriesClient() {
     setEditIcon(cat.icon || "");
   };
 
-  if (loading) {
+  if (categoriesQuery.isPending) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-sm text-slate-500">טוען...</div>
@@ -186,9 +133,9 @@ export default function CategoriesClient() {
 
   return (
     <div>
-      {error && (
+      {(error || categoriesQuery.error) && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
-          {error}
+          {error || categoriesQuery.error?.message}
           <button
             onClick={() => setError(null)}
             className="ms-2 text-red-500 hover:text-red-700 cursor-pointer"
@@ -249,8 +196,8 @@ export default function CategoriesClient() {
               />
             </div>
             <div className="flex gap-2">
-              <Button type="submit" disabled={addLoading} size="sm">
-                {addLoading ? "מוסיף..." : "הוסף"}
+              <Button type="submit" disabled={createCategory.isPending} size="sm">
+                {createCategory.isPending ? "מוסיף..." : "הוסף"}
               </Button>
               <Button
                 type="button"
@@ -305,7 +252,7 @@ export default function CategoriesClient() {
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => handleEdit(cat.id)}
-                            disabled={editLoading}
+                            disabled={updateCategory.isPending}
                             className="text-emerald-600 hover:bg-emerald-50"
                             title="שמור"
                           >
@@ -403,7 +350,7 @@ export default function CategoriesClient() {
         }
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
-        loading={deleteLoading}
+        loading={deleteCategory.isPending}
       />
     </div>
   );
