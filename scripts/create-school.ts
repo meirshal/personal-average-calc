@@ -2,7 +2,7 @@
  * Create a new school.
  *
  * Usage:
- *   npx tsx scripts/create-school.ts --name "ORT Rehovot" --slug "ort-rehovot"
+ *   bun scripts/create-school.ts --name "ORT Rehovot" --slug "ort-rehovot"
  */
 
 import { config } from "dotenv";
@@ -31,7 +31,7 @@ async function main() {
 
   if (!args.name || !args.slug) {
     console.error(
-      'Usage: npx tsx scripts/create-school.ts --name "School Name" --slug "school-slug"'
+      'Usage: bun scripts/create-school.ts --name "School Name" --slug "school-slug"'
     );
     process.exit(1);
   }

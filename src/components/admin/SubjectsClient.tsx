@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import ConfirmDialog from "./ConfirmDialog";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, BookOpen } from "lucide-react";
+import { useSubjects, useDeleteSubject } from "@/hooks/useAdminQueries";
 
 interface Component {
   id: string;
@@ -42,49 +43,22 @@ interface Category {
 }
 
 export default function SubjectsClient() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const subjectsQuery = useSubjects();
+  const deleteSubject = useDeleteSubject();
+
+  const categories: Category[] = subjectsQuery.data?.categories ?? [];
+
   const [deleteTarget, setDeleteTarget] = useState<Subject | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/subjects");
-      if (!res.ok) throw new Error("שגיאה בטעינת מקצועות");
-      const data = await res.json();
-      setCategories(data.categories || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "שגיאה");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
 
-    setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/admin/subjects/${deleteTarget.id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "שגיאה במחיקה");
-      }
-
+      await deleteSubject.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
-      await fetchData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה");
-    } finally {
-      setDeleteLoading(false);
     }
   };
 
@@ -98,7 +72,7 @@ export default function SubjectsClient() {
     return subject.components.length;
   };
 
-  if (loading) {
+  if (subjectsQuery.isPending) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-sm text-slate-500">טוען...</div>
@@ -113,9 +87,9 @@ export default function SubjectsClient() {
 
   return (
     <div>
-      {error && (
+      {(error || subjectsQuery.error) && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
-          {error}
+          {error || subjectsQuery.error?.message}
           <button
             onClick={() => setError(null)}
             className="ms-2 text-red-500 hover:text-red-700 cursor-pointer"
@@ -232,7 +206,7 @@ export default function SubjectsClient() {
         }
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
-        loading={deleteLoading}
+        loading={deleteSubject.isPending}
       />
     </div>
   );

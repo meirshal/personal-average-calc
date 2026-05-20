@@ -108,3 +108,51 @@
 - **Expected:** HTTP 400 with validation error
 - Invalid units: `{ "name": "Test", "categoryId": "x", "units": -1 }`
 - **Expected:** HTTP 400 with validation error
+
+## School Management Endpoints
+
+### API-19: POST /api/admin/switch-school - no auth
+- `curl -X POST https://personal-average-calc.vercel.app/api/admin/switch-school -H 'Content-Type: application/json' -d '{"schoolId":"some-id"}'`
+- **Expected:** HTTP 401 Unauthorized
+
+### API-20: POST /api/admin/switch-school - authenticated valid
+- With valid session cookie
+- Body: `{ "schoolId": "<id-of-school-admin-has-access-to>" }`
+- **Expected:** HTTP 200
+- **Expected:** `admin-school-id` cookie set to the new school ID
+- **Expected:** Cookie attributes: httpOnly, sameSite=lax, path=/admin, 1yr expiry
+
+### API-21: POST /api/admin/switch-school - forbidden school
+- With valid session cookie
+- Body: `{ "schoolId": "<id-of-school-admin-has-NO-access-to>" }`
+- **Expected:** HTTP 403 Forbidden
+- **Expected:** Error message in Hebrew: "אין לך הרשאה לבית ספר זה"
+
+### API-22: POST /api/admin/switch-school - invalid input
+- With valid session cookie
+- Body: `{}` (missing schoolId)
+- **Expected:** HTTP 400 with Zod validation error
+
+### API-23: POST /api/admin/schools - no auth
+- `curl -X POST https://personal-average-calc.vercel.app/api/admin/schools -H 'Content-Type: application/json' -d '{"name":"Test","slug":"test"}'`
+- **Expected:** HTTP 401 Unauthorized
+
+### API-24: POST /api/admin/schools - create school
+- With valid session cookie
+- Body: `{ "name": "בית ספר חדש", "slug": "new-school" }`
+- **Expected:** HTTP 201
+- **Expected:** Returns created school with `{ id, name, slug }`
+- **Expected:** `admin_school` junction table entry created for current admin
+- **Expected:** `admin-school-id` cookie set to the new school's ID
+
+### API-25: POST /api/admin/schools - duplicate slug
+- With valid session cookie
+- Body: `{ "name": "Another School", "slug": "blich" }` (slug already exists)
+- **Expected:** HTTP 409 Conflict
+- **Expected:** Error message: "כתובת בית ספר כבר קיימת"
+
+### API-26: POST /api/admin/schools - invalid slug format
+- With valid session cookie
+- Body: `{ "name": "Test", "slug": "INVALID SLUG!" }`
+- **Expected:** HTTP 400 with validation error
+- **Expected:** Slug must match pattern: lowercase alphanumeric + hyphens only

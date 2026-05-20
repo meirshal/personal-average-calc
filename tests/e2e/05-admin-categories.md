@@ -60,9 +60,11 @@
 - **Expected:** Categories appear in the same order in admin and student calculator
 
 ### CAT-08: School scoping
-- All category operations only affect the admin's school
-- **Expected:** API calls include school_id scoping
-- **Expected:** Cannot see/modify categories from other schools
+- All category operations only affect the admin's currently selected school (via `admin-school-id` cookie)
+- Admin's school access is resolved through the `admin_school` junction table
+- **Expected:** API calls scope queries to the selected school's ID
+- **Expected:** Switching schools via the school switcher shows only that school's categories
+- **Expected:** Cannot see/modify categories from schools the admin has no access to
 
 ### CAT-09: Input validation
 - Try to create a category with empty name

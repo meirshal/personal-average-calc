@@ -1,105 +1,66 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SubjectForm, { type SubjectFormData } from "./SubjectForm";
+import { useSubject, useUpdateSubject } from "@/hooks/useAdminQueries";
 
 interface SubjectEditorClientProps {
   subjectId: string;
-}
-
-interface CategoryOption {
-  id: string;
-  name: string;
-}
-
-interface SubjectOption {
-  id: string;
-  name: string;
 }
 
 export default function SubjectEditorClient({
   subjectId,
 }: SubjectEditorClientProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<SubjectFormData | null>(null);
-  const [categories, setCategories] = useState<CategoryOption[]>([]);
-  const [allSubjects, setAllSubjects] = useState<SubjectOption[]>([]);
+  const subjectQuery = useSubject(subjectId);
+  const updateSubject = useUpdateSubject();
 
-  const fetchSubject = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/admin/subjects/${subjectId}`);
-      if (!res.ok) throw new Error("שגיאה בטעינת מקצוע");
-      const data = await res.json();
+  const formData = useMemo<SubjectFormData | null>(() => {
+    if (!subjectQuery.data) return null;
+    const s = subjectQuery.data.subject;
+    return {
+      name: s.name,
+      units: s.units,
+      categoryId: s.categoryId,
+      hasLevels: s.hasLevels,
+      dependsOnId: s.dependsOnId,
+      depLabel: s.depLabel,
+      depWeight: s.depWeight,
+      sortOrder: s.sortOrder,
+      levels: s.levels.map((l) => ({
+        id: l.id,
+        label: l.label,
+        units: l.units,
+        sortOrder: l.sortOrder,
+        components: l.components.map((c) => ({
+          id: c.id,
+          name: c.name,
+          weight: c.weight,
+          sortOrder: c.sortOrder,
+        })),
+      })),
+      components: s.components.map((c) => ({
+        id: c.id,
+        name: c.name,
+        weight: c.weight,
+        sortOrder: c.sortOrder,
+      })),
+    };
+  }, [subjectQuery.data]);
 
-      setFormData({
-        name: data.subject.name,
-        units: data.subject.units,
-        categoryId: data.subject.categoryId,
-        hasLevels: data.subject.hasLevels,
-        dependsOnId: data.subject.dependsOnId,
-        depLabel: data.subject.depLabel,
-        depWeight: data.subject.depWeight,
-        sortOrder: data.subject.sortOrder,
-        levels: data.subject.levels.map(
-          (l: { id: string; label: string; units: number; sortOrder: number; components: { id: string; name: string; weight: number; sortOrder: number }[] }) => ({
-            id: l.id,
-            label: l.label,
-            units: l.units,
-            sortOrder: l.sortOrder,
-            components: l.components.map(
-              (c: { id: string; name: string; weight: number; sortOrder: number }) => ({
-                id: c.id,
-                name: c.name,
-                weight: c.weight,
-                sortOrder: c.sortOrder,
-              })
-            ),
-          })
-        ),
-        components: data.subject.components.map(
-          (c: { id: string; name: string; weight: number; sortOrder: number }) => ({
-            id: c.id,
-            name: c.name,
-            weight: c.weight,
-            sortOrder: c.sortOrder,
-          })
-        ),
-      });
-      setCategories(data.categories);
-      setAllSubjects(data.allSubjects);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "שגיאה");
-    } finally {
-      setLoading(false);
-    }
-  }, [subjectId]);
-
-  useEffect(() => {
-    fetchSubject();
-  }, [fetchSubject]);
+  const categories = subjectQuery.data?.categories ?? [];
+  const allSubjects = subjectQuery.data?.allSubjects ?? [];
 
   const handleSubmit = async (data: SubjectFormData) => {
-    const res = await fetch(`/api/admin/subjects/${subjectId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || "שגיאה בשמירה");
-    }
-
+    await updateSubject.mutateAsync({ id: subjectId, ...data });
     router.refresh();
   };
 
-  if (loading) {
+  if (subjectQuery.isPending) {
     return (
       <div className="space-y-6 py-4">
         <div className="space-y-3">
@@ -119,11 +80,13 @@ export default function SubjectEditorClient({
     );
   }
 
-  if (error || !formData) {
+  if (subjectQuery.error || !formData) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="size-4" />
-        <AlertDescription>{error || "מקצוע לא נמצא"}</AlertDescription>
+        <AlertDescription>
+          {subjectQuery.error?.message || "מקצוע לא נמצא"}
+        </AlertDescription>
       </Alert>
     );
   }

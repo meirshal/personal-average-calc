@@ -1,21 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SubjectForm, { type SubjectFormData } from "./SubjectForm";
-
-interface CategoryOption {
-  id: string;
-  name: string;
-}
-
-interface SubjectOption {
-  id: string;
-  name: string;
-}
+import {
+  useCategories,
+  useSubjects,
+  useCreateSubject,
+} from "@/hooks/useAdminQueries";
 
 const emptyFormData: SubjectFormData = {
   name: "",
@@ -32,62 +27,36 @@ const emptyFormData: SubjectFormData = {
 
 export default function NewSubjectClient() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<CategoryOption[]>([]);
-  const [allSubjects, setAllSubjects] = useState<SubjectOption[]>([]);
+  const categoriesQuery = useCategories();
+  const subjectsQuery = useSubjects();
+  const createSubject = useCreateSubject();
 
-  const fetchData = useCallback(async () => {
-    try {
-      // Fetch categories
-      const catRes = await fetch("/api/admin/categories");
-      if (!catRes.ok) throw new Error("שגיאה בטעינת קטגוריות");
-      const catData = await catRes.json();
-      setCategories(
-        catData.map((c: { id: string; name: string }) => ({
-          id: c.id,
-          name: c.name,
-        }))
-      );
+  const categories = useMemo(
+    () =>
+      (categoriesQuery.data ?? []).map((c) => ({
+        id: c.id,
+        name: c.name,
+      })),
+    [categoriesQuery.data]
+  );
 
-      // Fetch subjects for dependency picker
-      const subjRes = await fetch("/api/admin/subjects");
-      if (!subjRes.ok) throw new Error("שגיאה בטעינת מקצועות");
-      const subjData = await subjRes.json();
-      setAllSubjects(
-        (subjData.subjects || []).map((s: { id: string; name: string }) => ({
-          id: s.id,
-          name: s.name,
-        }))
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "שגיאה");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const allSubjects = useMemo(
+    () =>
+      (subjectsQuery.data?.subjects ?? []).map((s) => ({
+        id: s.id,
+        name: s.name,
+      })),
+    [subjectsQuery.data]
+  );
 
   const handleSubmit = async (data: SubjectFormData) => {
-    const res = await fetch("/api/admin/subjects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || "שגיאה ביצירת מקצוע");
-    }
-
-    const created = await res.json();
-    router.push(`/admin/subjects/${created.id}`);
+    const result = await createSubject.mutateAsync(
+      data as unknown as Record<string, unknown>
+    );
+    router.push(`/admin/subjects/${result.id}`);
   };
 
-  if (loading) {
+  if (categoriesQuery.isPending || subjectsQuery.isPending) {
     return (
       <div className="space-y-6 py-4">
         <div className="space-y-3">
@@ -107,11 +76,12 @@ export default function NewSubjectClient() {
     );
   }
 
+  const error = categoriesQuery.error || subjectsQuery.error;
   if (error) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="size-4" />
-        <AlertDescription>{error}</AlertDescription>
+        <AlertDescription>{error.message}</AlertDescription>
       </Alert>
     );
   }

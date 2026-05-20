@@ -2,7 +2,7 @@
  * Seed default 30 subjects (from the original Bagrut calculator) for a school.
  *
  * Usage:
- *   npx tsx scripts/seed-subjects.ts --school <slug>
+ *   bun scripts/seed-subjects.ts --school <slug>
  */
 
 import { config } from "dotenv";
@@ -455,7 +455,7 @@ async function main() {
   const schoolSlugIdx = args.indexOf("--school");
 
   if (schoolSlugIdx === -1 || !args[schoolSlugIdx + 1]) {
-    console.error("Usage: npx tsx scripts/seed-subjects.ts --school <slug>");
+    console.error("Usage: bun scripts/seed-subjects.ts --school <slug>");
     process.exit(1);
   }
 

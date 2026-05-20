@@ -2,7 +2,7 @@
  * List all schools and their admins.
  *
  * Usage:
- *   npx tsx scripts/list-schools.ts
+ *   bun scripts/list-schools.ts
  */
 
 import { config } from "dotenv";
@@ -18,7 +18,9 @@ const db = drizzle(sql, { schema });
 async function main() {
   const schoolsWithAdmins = await db.query.schools.findMany({
     with: {
-      admins: true,
+      adminSchools: {
+        with: { admin: true },
+      },
       categories: true,
       subjects: true,
     },
@@ -28,7 +30,7 @@ async function main() {
   if (schoolsWithAdmins.length === 0) {
     console.log("No schools found. Create one with:");
     console.log(
-      '  npx tsx scripts/create-school.ts --name "School Name" --slug "school-slug"'
+      '  bun scripts/create-school.ts --name "School Name" --slug "school-slug"'
     );
     process.exit(0);
   }
@@ -44,10 +46,10 @@ async function main() {
     console.log(`  Subjects:   ${school.subjects.length}`);
     console.log(`  Created:    ${school.createdAt.toISOString()}`);
 
-    if (school.admins.length > 0) {
+    if (school.adminSchools.length > 0) {
       console.log(`  Admins:`);
-      for (const admin of school.admins) {
-        console.log(`    - ${admin.email} (added ${admin.createdAt.toISOString()})`);
+      for (const as of school.adminSchools) {
+        console.log(`    - ${as.admin.email} (added ${as.createdAt.toISOString()})`);
       }
     } else {
       console.log(`  Admins:     (none)`);
