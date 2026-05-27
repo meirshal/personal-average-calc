@@ -21,7 +21,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface School {
   id: string;
@@ -154,29 +153,6 @@ export function SchoolSwitcher({ currentSchool, schools }: SchoolSwitcherProps) 
       </DialogContent>
     </Dialog>
   );
-
-  // Single school: render static text + create button
-  if (schools.length <= 1) {
-    return (
-      <>
-        <span className="hidden sm:inline text-sm font-semibold text-slate-800">
-          {currentSchool.name}
-        </span>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => setDialogOpen(true)}
-              className="hidden sm:inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>הוסף בית ספר חדש</TooltipContent>
-        </Tooltip>
-        {createSchoolDialog}
-      </>
-    );
-  }
 
   const handleSchoolChange = async (value: string) => {
     if (value === CREATE_NEW_VALUE) {
